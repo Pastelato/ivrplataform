@@ -1,43 +1,54 @@
 pipeline {
-agent any
+    agent any
 
-```
-tools {
-    maven 'Maven3'
-}
-
-stages {
-
-    stage('Checkout') {
-        steps {
-            git 'https://github.com/tu-repo.git'
-        }
+    environment {
+        IMAGE_NAME = "ironlogicfather/ivr-backend"
+        IMAGE_TAG = "latest"
     }
 
-    stage('Build') {
-        steps {
-            sh 'mvn clean package -DskipTests'
+    stages {
+
+        stage('Clone') {
+            steps {
+                git 'https://github.com/Pastelato/ivrplataform.git'
+            }
+        }
+
+        stage('Maven Test') {
+            steps {
+                bat 'mvn clean test'
+            }
+        }
+
+        stage('Build Jar') {
+            steps {
+                bat 'mvn clean package -DskipTests'
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                bat 'docker build -t %IMAGE_NAME%:%IMAGE_TAG% .'
+            }
+        }
+
+        stage('Docker Login') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+
+                    bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                bat 'docker push %IMAGE_NAME%:%IMAGE_TAG%'
+            }
         }
     }
-
-    stage('Test') {
-        steps {
-            sh 'mvn test'
-        }
-    }
-
-    stage('Docker Build') {
-        steps {
-            sh 'docker build -t ivr-backend .'
-        }
-    }
-
-    stage('Docker Compose Up') {
-        steps {
-            sh 'docker compose up -d'
-        }
-    }
-}
-```
-
 }
