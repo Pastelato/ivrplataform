@@ -9,10 +9,11 @@ pipeline {
     stages {
 
         stage('Clone') {
-            steps {
-                git 'https://github.com/Pastelato/ivrplataform.git'
-            }
+        steps {
+            git branch: 'main',
+                url: 'https://github.com/Pastelato/ivrplataform.git'
         }
+    }
 
         stage('Maven Test') {
             steps {
