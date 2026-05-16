@@ -15,6 +15,12 @@ pipeline {
         }
     }
 
+    stage('Permissions') {
+                steps {
+                    sh 'chmod +x mvnw'
+                }
+            }
+
         stage('Maven Test') {
             steps {
                 sh './mvnw clean test'
