@@ -1,14 +1,15 @@
 pipeline {
-    agent any
+agent any
 
-    environment {
-        IMAGE_NAME = "ironlogicfather/ivr-backend"
-        IMAGE_TAG = "latest"
-    }
+```
+environment {
+    IMAGE_NAME = "ironlogicfather/ivr-backend"
+    IMAGE_TAG = "latest"
+}
 
-    stages {
+stages {
 
-        stage('Clone') {
+    stage('Clone') {
         steps {
             git branch: 'main',
                 url: 'https://github.com/Pastelato/ivrplataform.git'
@@ -16,46 +17,48 @@ pipeline {
     }
 
     stage('Permissions') {
-                steps {
-                    sh 'chmod +x mvnw'
-                }
-            }
-
-        stage('Maven Test') {
-            steps {
-                sh './mvnw clean test'
-            }
+        steps {
+            sh 'chmod +x mvnw'
         }
+    }
 
-        stage('Build Jar') {
-            steps {
-                sh './mvnw clean package -DskipTests'
-            }
+    stage('Maven Test') {
+        steps {
+            sh './mvnw clean test'
         }
+    }
 
-        stage('Docker Build') {
-            steps {
-                sh 'docker build -t %IMAGE_NAME%:%IMAGE_TAG% .'
-            }
+    stage('Build Jar') {
+        steps {
+            sh './mvnw clean package -DskipTests'
         }
+    }
 
-        stage('Docker Login') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
-
-                    sh 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
-                }
-            }
+    stage('Docker Build') {
+        steps {
+            sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
         }
+    }
 
-        stage('Docker Push') {
-            steps {
-                sh 'docker push %IMAGE_NAME%:%IMAGE_TAG%'
+    stage('Docker Login') {
+        steps {
+            withCredentials([usernamePassword(
+                credentialsId: 'dockerhub-creds',
+                usernameVariable: 'DOCKER_USER',
+                passwordVariable: 'DOCKER_PASS'
+            )]) {
+
+                sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'
             }
         }
     }
+
+    stage('Docker Push') {
+        steps {
+            sh 'docker push $IMAGE_NAME:$IMAGE_TAG'
+        }
+    }
+}
+```
+
 }
